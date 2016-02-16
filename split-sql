@@ -1,3 +1,11 @@
 #!/bin/bash
+read sqlfile
 
-cat - | awk -v RS="-- --------------------------------------------------------" 'NR > 1 { print RS $0 > "partial_sql_" (NR-1) ".sql"; close("partial_sql_" (NR-1) ".sql") }'
+mkdir -p output
+
+cat $sqlfile | awk -v \
+    RS="-- --------------------------------------------------------" \
+    'NR > 1 { \
+        print RS $0 > "output/partial_sql_" (NR-1) ".sql"; \
+        close("output/partial_sql_" (NR-1) ".sql") \
+    }'
