@@ -9,4 +9,4 @@ sh mysqldumpsplitter/mysqldumpsplitter.sh \
     --extract ALLTABLES \
     --decompression none \
     --compression none \
-    --output_dir output
+    --output_dir output/raw
