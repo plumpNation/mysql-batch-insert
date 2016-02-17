@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# Usage: cat yoursqlfile.sql | ./split-sql
+
 read sqlfile;
 
 mkdir -p output;
