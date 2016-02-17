@@ -1,5 +1,9 @@
-SQL splitter
+MySQL table dump splitter
 ============
+
+This is a work in progress, don't use it.
+
+Splits large MySql table dumps into files ready for batch restore.
 
 Do you have a massive dump to put in your VM.
 
