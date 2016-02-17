@@ -1,3 +1,3 @@
 #!/bin/bash
 
-find . -iname 'partial_sql_*' -printf '%s %p\n' | sort -rn
+du -BM * | sort -r -n
