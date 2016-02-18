@@ -22,15 +22,14 @@ Peace.
 ## Usage
 
 ```shell
-cat yourmassivedump.sql | node split-sql.js
+sh src/split-sql.sh yourbigdump.sql
 
 # and as a bonus
 # cd to a folder you wanna take a look at
-sh list-by-size
+sh list-by-size.sh
 
 # if you want to split a huge table dump
-cd table-split
-cat yourmassivetable.sql | node split-table-query.js
+cat yourmassivetable.sql | node src/table-to-batches.js
 ```
 
 ## ToDo
