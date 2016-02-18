@@ -1,7 +1,7 @@
 MySQL table dump splitter
 ============
 
-This is a work in progress, don't use it.
+This is a work in progress, don't use it for something serious unless you are aware.
 
 Splits large MySql table dumps into files ready for batch restore.
 
@@ -19,17 +19,21 @@ on the dump splitter. I saw it and just threw mine away.
 
 Peace.
 
+## Requirements
+
+Update your nodejs! (>=v5.6 perhaps)
+
 ## Usage
 
 ```shell
-sh src/split-sql.sh yourbigdump.sql
+./bin/split-tables yourbigdump.sql
 
 # and as a bonus
 # cd to a folder you wanna take a look at
-sh list-by-size.sh
+./bin/list-by-size
 
 # if you want to split a huge table dump
-cat yourmassivetable.sql | node src/table-to-batches.js
+cat yourmassivetable.sql | ./bin/table-to-batches
 ```
 
 ## ToDo
