@@ -4,7 +4,7 @@
 
 mkdir -p output;
 
-sh mysqldumpsplitter/mysqldumpsplitter.sh \
+sh ./bin/mysqldumpsplitter \
     --source $1 \
     --extract ALLTABLES \
     --decompression none \
