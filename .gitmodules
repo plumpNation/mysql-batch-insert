@@ -1,3 +1,3 @@
 [submodule "mysqldumpsplitter"]
-	path = mysqldumpsplitter
+	path = ./lib/mysqldumpsplitter
 	url = https://github.com/kedarvj/mysqldumpsplitter.git
