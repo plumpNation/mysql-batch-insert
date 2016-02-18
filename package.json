@@ -1,0 +1,23 @@
+{
+  "name": "sql-splitter",
+  "version": "1.0.0",
+  "description": "utilities to split massive dumps into manageable batch files",
+  "main": "README.md",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plumpNation/table-dump-splitter.git"
+  },
+  "author": "plumpNation",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/plumpNation/table-dump-splitter/issues"
+  },
+  "homepage": "https://github.com/plumpNation/table-dump-splitter#readme",
+  "dependencies": {
+    "colors": "^1.1.2",
+    "single-line-log": "^1.0.1"
+  }
+}
