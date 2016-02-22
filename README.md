@@ -44,4 +44,15 @@ threshold. For instance:
 ```
 # this will not work, look up, you're in a ToDo section!
 cat yourmassivedump.sql | node split-sql.js --threshold 20M
+
+# could be a quick way to insert
+find . -name '*.sql' | awk '{ print "source",$0 }' | mysql --batch
+# OR
+for SQL in *.sql; do DB=${SQL/\.sql/}; echo importing $DB; mysql $DB < $SQL; done
+# OR
+for i in *.sql
+do
+  echo "file=$i"
+  mysql -u admin_privileged_user --password=whatever your_database_here < $i
+done
 ```
