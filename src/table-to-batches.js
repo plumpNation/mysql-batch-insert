@@ -14,7 +14,7 @@ const fs     = require('fs'),
     colors   = require('colors'),
     log      = require('single-line-log').stdout,
 
-    rl = readline.createInterface({
+    readInput = readline.createInterface({
         input: process.stdin
     }),
 
@@ -33,10 +33,12 @@ const fs     = require('fs'),
     INSERTS_PER_FILE = 10000;
 
 var writeStream,
-    writingStructure,
-    structureWritten,
     insertStatementCache,
-    everythingElseIsShit,
+
+    noMoreUsefulData      = false,
+    writingTableStructure = false,
+    // writingTableData      = false,
+    tableStructureWritten = false,
 
     lineCount   = 1,
     batchNumber = 1;
@@ -47,69 +49,75 @@ try {
 } catch(e) {};
 
 // we want to start the line count AFTER we have cached the INSERT statement
-rl.on('line', (line) => {
-    rl.pause();
+readInput.on('line', (line) => {
+    readInput.pause();
 
     // If we hit this pattern and we have been parsing the actual data,
     // we can assume we don't want any more of this file.
-    if (structureWritten && isEndOfData(line)) {
-        everythingElseIsShit = true;
+    if (tableStructureWritten && isEndOfData(line)) {
+        noMoreUsefulData = true;
 
-        writeFooters(writeStream);
+        // writeFooters(writeStream);
+        writeStream.write('COMMIT;' + '\n');
+        writeStream.write(footers.join(''));
 
-        writeStream.end();
-        rl.close();
+        lineCount = 1;
 
+        readInput.close();
         console.log('\n');
         console.log('Found end of data dump, ignoring the rest of the file.'.yellow);
-        rl.resume();
+        readInput.resume();
+
+        writeStream.end();
+
         return;
     }
 
-    if (everythingElseIsShit || isBullshit(line)) {
-        rl.resume();
+    if (noMoreUsefulData || isSuperfluous(line)) {
+        readInput.resume();
         return;
     }
 
     // We want to preserve the newlines, it's easier to read.
     line = line + '\n';
 
-    if (!writingStructure && isStructure(line)) {
-        console.log('Detected structure, entering structure mode'.green);
-        writingStructure = true;
+    if (!writingTableStructure && isStructure(line)) {
+        console.log('Detected table structure, entering structure write mode'.green);
+        writingTableStructure = true;
 
-        rl.resume();
+        readInput.resume();
+
         return;
     }
 
-    if (!structureWritten && !writingStructure) {
+    if (!tableStructureWritten && !writingTableStructure) {
+        readInput.resume();
 
-        rl.resume();
         return;
     }
 
-    if (writingStructure && isData(line)) {
-        // If this is the start of the data, come out of writingStructure and reset the lineCount.
-        // Unless the structure of the dumps changes, this should be stable enough.
-        writingStructure = false;
-        structureWritten = true;
-        lineCount        = 1;
+    if (writingTableStructure && isData(line)) {
+        // If this is the start of the data we are no longer writing table structure
+        writingTableStructure = false;
+        tableStructureWritten = true;
 
-        log('Finished writing structure'.green);
+        // We will start writing to a new data file from line 1 (of course)
+        lineCount = 1;
+
+        log('Finished writing stucture'.green);
         console.log('\n');
-        writeStream.end();
 
-        rl.resume();
+        readInput.resume();
         return;
     }
 
     // are we starting a new batch file?
     if (lineCount === 1) {
-        let filetype = writingStructure ? 'structure' : 'data',
+        let filetype = writingTableStructure ? 'structure' : 'data',
             folder   = 'output/' + filetype,
             fileName = filetype + '_' + batchNumber,
             fullPath = folder + '/' + fileName + '.sql',
-            colorPath = (folder + '/').green + fileName.yellow + '.sql'.green;
+            coloredPath = (folder + '/').green + fileName.yellow + '.sql'.green;
 
         // Create the output directory or die trying...
         try {
@@ -118,26 +126,27 @@ rl.on('line', (line) => {
             console.log('\n');
         } catch(e) {};
 
-        log('Creating new batch file:'.green, colorPath);
+        log('Detected data'.green);
+        log('Creating new batch file:'.green, coloredPath);
 
         writeStream = fs.createWriteStream(fullPath);
     }
 
-    if (writingStructure) {
+    if (writingTableStructure) {
         // Simply write in the line if it's table structure, no need for complication.
         writeStream.write(line);
         // We aren't batching the structure, it won't get large enough.
         lineCount++;
 
         // Don't let the code flow on to the data section
-        // @todo: break this out. It's shit.
-        rl.resume();
+        // @todo: break this out.
+        readInput.resume();
         return;
     }
 
     // We haven't finished pulling the structure out, don't bother with data processing.
-    if (!structureWritten) {
-        rl.resume();
+    if (!tableStructureWritten) {
+        readInput.resume();
         return;
     }
 
@@ -160,7 +169,7 @@ rl.on('line', (line) => {
         writeStream.write(line);
         lineCount++;
 
-        rl.resume();
+        readInput.resume();
         return;
     }
 
@@ -178,11 +187,11 @@ rl.on('line', (line) => {
     log(batchFinishedMessage.green);
 
     // We've reached our tolerance. A new file is required.
-    batchNumber++;
+    batchNumber += 1;
     lineCount = 1;
 
     writeStream.end();
-    rl.resume();
+    readInput.resume();
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -201,7 +210,10 @@ function isEndOfData(line) {
     return line.indexOf('-- --------------------------------------------------------') > -1;
 }
 
-function isBullshit(line) {
+/**
+ * Checks to see if a line could be ignored due to lack of needed content.
+ */
+function isSuperfluous(line) {
     if (line === '') {
         return true;
     }
